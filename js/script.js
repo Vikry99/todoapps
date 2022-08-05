@@ -3,6 +3,8 @@ const todos = [];
 
 // event costume
 const RENDER_EVENT = 'event-todo';
+const SAVED_EVENT = 'saved-todo';
+const STORAGE_KEY = 'TODO_APPS';
 
 // listener event costum render_event akan melakukan console.log sementara
 document.addEventListener(RENDER_EVENT, function(){
@@ -34,7 +36,39 @@ document.addEventListener("DOMContentLoaded", function(){
     // untuk menambahkan todo baru
         addTodo();
     })
+
+    if(isStorageExist()){
+        loadDataFromStorage();
+    }
 })
+
+// listener save document local storage
+document.addEventListener(SAVED_EVENT, function(){
+    console.log(localStorage.getItem(STORAGE_KEY));
+})
+
+
+// function untuk pengecekan storage apakah compatible atau tidak
+function isStorageExist(){
+    if(typeof(Storage)=== undefined){
+        alert('Browser kamu tidak mendukung local storage');
+        return false;
+    }
+    return true;
+}
+
+// function load data
+function loadDataFromStorage(){
+    const serializeData = localStorage.getItem(STORAGE_KEY);
+    let data = JSON.parse(serializeData);
+
+    if (data !== null) {
+        for (const todo of data){
+            todos.push(todo);
+        }
+    }
+    document.dispatchEvent(new Event(RENDER_EVENT));
+}
 
 // untuk memasukan object kedalam array
 function generateToObject (id, task, timeStamp , isComplated) {
@@ -52,6 +86,16 @@ function generateId(){
     return + new Date();
 }
 
+// function untuk save data yang di masukan ke local storage
+
+function saveData(){
+    if(isStorageExist()){
+        const parsed = JSON.stringify(todos);
+        localStorage.setItem(STORAGE_KEY, parsed);
+        document.dispatchEvent(new Event(SAVED_EVENT));
+    }
+}
+
 // function untk menambahkan todo baru data dari input title dan date
 function addTodo(){
     const textTodo = document.getElementById('title').value;
@@ -62,6 +106,7 @@ function addTodo(){
     todos.push(todoObject);
 
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 function findTodo(todoId){
@@ -90,6 +135,7 @@ function addTaskToCompleted (todoId){
 
     todoTarget.isComplated = true;
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 function removeTaskFromCompleted (todoId) {
@@ -99,6 +145,7 @@ function removeTaskFromCompleted (todoId) {
 
     todos.splice(todoTarget, 1);
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 function undoTaskFromCompleted(todoId){
@@ -108,6 +155,7 @@ function undoTaskFromCompleted(todoId){
 
     todoTarget.isComplated = false;
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 function makeTodo(todoObject){
